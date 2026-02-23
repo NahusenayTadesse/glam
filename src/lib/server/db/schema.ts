@@ -10,7 +10,9 @@ export const paymentMethods = mysqlTable('payment_methods', {
 
 export const products = mysqlTable('products', {
 	id: int('id').primaryKey().autoincrement(),
+
 	name: varchar('name', { length: 50 }).notNull(),
+	featuredImage: varchar('featured_image', { length: 255 }),
 	description: varchar('description', { length: 255 }),
 	categoryId: int('category_id').references(() => productCategories.id, { onDelete: 'set null' }),
 	quantity: int('quantity').notNull().default(0),
@@ -19,6 +21,12 @@ export const products = mysqlTable('products', {
 	supplierId: int('supplier_id').references(() => productSuppliers.id),
 	reorderLevel: int('reorder_level'),
 	...secureFields
+});
+
+export const productImages = mysqlTable('product_images', {
+	id: int('id').primaryKey().autoincrement(),
+	productId: int('product_id').references(() => products.id, { onDelete: 'cascade' }),
+	imageUrl: varchar('image_url', { length: 255 }).notNull()
 });
 
 export const customers = mysqlTable('customers', {

@@ -3,15 +3,15 @@ import { products, productCategories, productSuppliers } from '$lib/server/db/sc
 import { eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from '../$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async () => {
 	let productList = await db
 		.select({
 			id: products.id,
 			name: products.name,
 			price: products.price,
+			image: products.featuredImage,
 			description: products.description,
 			category: productCategories.name,
-			commission: products.commissionAmount,
 			quantity: products.quantity,
 			supplier: productSuppliers.name
 		})
@@ -24,14 +24,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 			products.price,
 			products.description,
 			productCategories.name,
-			products.commissionAmount,
 			products.quantity,
 			productSuppliers.name
 		);
 	productList = productList.map((r) => ({
 		...r,
 		price: Number(r.price),
-		commission: Number(r.commission),
 		quantity: Number(r.quantity)
 	}));
 

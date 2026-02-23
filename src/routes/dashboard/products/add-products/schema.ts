@@ -20,22 +20,23 @@ export const add = z.object({
 	quantity: z.coerce
 		.number()
 		.int({ message: 'Quantity can only be full numbers, no decimals.' })
-		.positive({ message: 'Quantity must be a positive number.' }),
+		.positive({ message: 'Quantity must be a positive number.' })
+		.default(0),
 	price: z
 		.number({ message: 'Price is required' })
 		.positive({ message: 'Price must be a positive number.' }),
-	commission: z
-		.number({ message: 'Commission is required, enter 0 if it is not decided yet' })
-		.positive({ message: 'Price must be a positive number.' }),
-	supplier: z.string().min(1, { message: 'Supplier is required.' }),
+
+	supplier: z.coerce.number('Supplier is required'),
 	reorderLevel: z.coerce
 		.number()
 		.int({ message: 'Reorder Level can only be full numbers, no decimals.' })
-		.positive({ message: 'Reorder Level must be a positive number.' }),
+		.positive({ message: 'Reorder Level must be a positive number.' })
+		.default(0),
 
 	costPerUnit: z
 		.number({ message: 'Cost is required' })
-		.positive({ message: 'Cost must be a positive number.' }),
+		.positive({ message: 'Cost must be a positive number.' })
+		.default(0),
 
 	image: z
 		.instanceof(File)

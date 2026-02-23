@@ -1,8 +1,8 @@
 import { renderComponent } from '$lib/components/ui/data-table/index.js';
 import DataTableLinks from '$lib/components/Table/data-table-links.svelte';
-import Copy from '$lib/Copy.svelte';
 import DataTableActions from './data-table-actions.svelte';
 import DataTableSort from '$lib/components/Table/data-table-sort.svelte';
+import ImageViewer from '$lib/components/Table/image-viewer.svelte';
 
 export const columns = [
 	{
@@ -10,6 +10,19 @@ export const columns = [
 		header: '#',
 		cell: (info) => info.row.index + 1,
 		sortable: false
+	},
+
+	{
+		accessorKey: 'image',
+		header: 'Image',
+		sortable: true,
+		cell: ({ row }) => {
+			// You can pass whatever you need from `row.original` to the component
+			return renderComponent(ImageViewer, {
+				src: row.original.image,
+				alt: row.original.name
+			});
+		}
 	},
 
 	{
@@ -53,16 +66,6 @@ export const columns = [
 
 		sortable: true,
 		cell: (info) => `${info.getValue()} Pieces` // always “day”
-	},
-	{
-		accessorKey: 'commission',
-		header: ({ column }) =>
-			renderComponent(DataTableSort, {
-				name: 'Commission',
-				onclick: column.getToggleSortingHandler()
-			}),
-		sortable: true,
-		cell: (info) => `${info.getValue()} ETB`
 	},
 
 	{

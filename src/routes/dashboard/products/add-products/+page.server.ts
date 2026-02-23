@@ -41,6 +41,8 @@ export const load: PageServerLoad = async () => {
 	};
 };
 
+import { saveUploadedFile } from '$lib/server/upload.js';
+
 export const actions: Actions = {
 	addProduct: async ({ request, cookies, locals }) => {
 		const form = await superValidate(request, zod4(add));
@@ -55,27 +57,27 @@ export const actions: Actions = {
 			productName,
 			category,
 			description,
-			commission,
 			quantity,
 			price,
 			supplier,
 			reorderLevel,
-			costPerUnit
+			costPerUnit,
+			image
 		} = form.data;
 
 		try {
+			const featuredImage = await saveUploadedFile(image);
+
 			await db.insert(inventory).values({
 				name: productName,
-				commissionAmount: commission,
 				categoryId: category,
 				description,
 				quantity,
 				price,
-				supplier,
+				supplierId: supplier,
 				reorderLevel,
-				cost: costPerUnit,
-				branchId: locals?.user?.branch,
-				createdBy: locals?.user?.id
+				featuredImage,
+				cost: costPerUnit
 			});
 
 			// Stay on the same page and set a flash message
@@ -83,15 +85,20 @@ export const actions: Actions = {
 
 			return message(form, { type: 'success', text: 'New Product Successfully Added' });
 		} catch (err) {
+			console.error(err);
 			setFlash(
 				{ type: 'error', message: 'An error occurred while adding the product.' + err?.message },
 				cookies
 			);
 
-			return message(form, {
-				type: 'error',
-				text: 'An error occurred while adding the product.' + err?.message
-			});
+			return message(
+				form,
+				{
+					type: 'error',
+					text: 'An error occurred while adding the product.' + err?.message
+				},
+				{ status: 500 }
+			);
 		}
 	}
 };
