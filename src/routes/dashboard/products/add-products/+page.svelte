@@ -146,6 +146,15 @@
 			placeholder="Upload Product Image"
 			required
 		/>
+		<InputComp
+			{form}
+			{errors}
+			type="gallery"
+			name="gallery"
+			label="Product Gallery Images"
+			placeholder="Upload Product Gallery Images"
+			required
+		/>
 
 		<Button type="submit" class="mt-4" form="main">
 			{#if $delayed}

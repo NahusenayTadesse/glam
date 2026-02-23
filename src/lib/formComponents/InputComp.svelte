@@ -10,6 +10,7 @@
 	import CheckboxComp from './CheckboxComp.svelte';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { CircleAlert } from '@lucide/svelte';
+	import GalleryUpload from './GalleryUpload.svelte';
 
 	let {
 		label,
@@ -36,6 +37,8 @@
 		<Textarea {name} bind:value={$form[name]} {required} {rows} {placeholder} />
 	{:else if type === 'file'}
 		<FileUpload {name} {form} {image} {placeholder} />
+	{:else if type === 'gallery'}
+		<GalleryUpload {name} {form} {errors} title={placeholder} />
 	{:else if type === 'select'}
 		<SelectComp {name} bind:value={$form[name]} {items} />
 	{:else if type === 'date'}
