@@ -1,12 +1,12 @@
 import { setError, superValidate, message, fail } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { eq } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 import { add, edit } from './schema';
 import { db } from '$lib/server/db';
-import { productCategories as department } from '$lib/server/db/schema';
-import type { Actions } from './$types';
-import type { PageServerLoad } from './$types.js';
+import { orders, orderItems, products, customers } from '$lib/server/db/schema';
+import type { Actions } from './categories/$types.js';
+import type { PageServerLoad } from './categories/$types.js';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod4(add));
@@ -14,17 +14,31 @@ export const load: PageServerLoad = async () => {
 
 	const allData = await db
 		.select({
-			id: department.id,
-			name: department.name,
-			description: department.description,
-			status: department.isActive
+			id: orders.id,
+			name: customers.name
 		})
-		.from(department);
+		.from(orders)
+		.leftJoin(customers, eq(orders.customerId, customers.id))
+		.where(eq(orders.status, 'pending'));
+
+	const allItems = await db
+		.select({
+			id: orderItems.id,
+			orderId: orderItems.orderId,
+			product: products.name,
+			quantity: orderItems.quantity,
+			price: orderItems.price,
+			total: sql<number>`${orderItems.quantity} * ${orderItems.price}`.mapWith(Number)
+		})
+		.from(orderItems)
+		.leftJoin(orders, and(eq(orders.id, orderItems.orderId), eq(orders.status, 'pending')))
+		.leftJoin(products, eq(orderItems.productId, products.id));
 
 	return {
 		form,
 		editForm,
-		allData
+		allData,
+		allItems
 	};
 };
 
