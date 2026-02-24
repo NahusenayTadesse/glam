@@ -2,7 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import { X } from '@lucide/svelte';
+	import { BrushCleaning, X } from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 	import { filesProxy } from 'sveltekit-superforms';
 	import { CloudUpload } from '@lucide/svelte';
@@ -38,6 +38,8 @@
 	function handleDragLeave() {
 		isDragging = false;
 	}
+
+	import { toast } from 'svelte-sonner';
 </script>
 
 <div class="my-8 flex w-full flex-col justify-start gap-2">
@@ -76,6 +78,23 @@
 		/>
 		<!-- <Input type="file" {name} accept="image/*,application/pdf" bind:files={$file} multiple={true} /> -->
 
+		{#if $file.length > 0}
+			<div class="space-y-3">
+				<div class="flex items-center justify-between gap-2">
+					<Label>Uploaded Files ({$file.length})</Label>
+					<Button
+						variant="destructive"
+						size="sm"
+						onclick={() => {
+							$file = [];
+							toast.info('All files removed');
+						}}
+					>
+						<BrushCleaning /> Clear all
+					</Button>
+				</div>
+			</div>
+		{/if}
 		<div class="flex flex-row gap-2">
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each $file as i, index (i.name)}

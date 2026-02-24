@@ -1,12 +1,12 @@
 import { superValidate, message } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { fail } from '@sveltejs/kit';
 
 import { add } from './schema';
 import { db } from '$lib/server/db';
 import {
 	products as inventory,
 	productCategories,
+	productImages,
 	productSuppliers as suppliers
 } from '$lib/server/db/schema';
 import type { Actions } from './$types';
@@ -46,6 +46,7 @@ import { saveUploadedFile } from '$lib/server/upload.js';
 export const actions: Actions = {
 	addProduct: async ({ request, cookies, locals }) => {
 		const form = await superValidate(request, zod4(add));
+		console.log(form);
 
 		if (!form.valid) {
 			// Stay on the same page and set a flash message
@@ -62,22 +63,47 @@ export const actions: Actions = {
 			supplier,
 			reorderLevel,
 			costPerUnit,
-			image
+			image,
+			gallery
 		} = form.data;
 
 		try {
-			const featuredImage = await saveUploadedFile(image);
+			await db.transaction(async (tx) => {
+				// 1. Upload images first (usually done before the DB transaction starts
+				// to avoid keeping a DB connection open during slow network I/O)
+				const featuredImage = await saveUploadedFile(image);
+				const galleryImages = await uploadGallery(gallery);
 
-			await db.insert(inventory).values({
-				name: productName,
-				categoryId: category,
-				description,
-				quantity,
-				price,
-				supplierId: supplier,
-				reorderLevel,
-				featuredImage,
-				cost: costPerUnit
+				// 2. Insert the main product
+				const [product] = await tx
+					.insert(inventory)
+					.values({
+						name: productName,
+						categoryId: category,
+						description,
+						quantity,
+						price,
+						supplierId: supplier,
+						reorderLevel,
+						featuredImage,
+						cost: costPerUnit
+					})
+					.$returningId();
+
+				const newProductId = product.id;
+
+				// 3. Prepare and insert the gallery images
+				if (galleryImages.length > 0) {
+					const imageRecords = galleryImages.map((url) => ({
+						productId: newProductId,
+						imageUrl: url
+					}));
+
+					await tx.insert(productImages).values(imageRecords);
+				}
+
+				// Return the ID or the full object if needed
+				return newProductId;
 			});
 
 			// Stay on the same page and set a flash message
@@ -100,5 +126,25 @@ export const actions: Actions = {
 				{ status: 500 }
 			);
 		}
+	}
+};
+
+const uploadGallery = async (gallery: File[] | undefined) => {
+	try {
+		// 1. Map each file to the upload promise
+		const uploadPromises = gallery.map(async (file) => {
+			const address = await saveUploadedFile(file);
+			return address; // This is the string returned by your function
+		});
+
+		// 2. Wait for all uploads to complete and store results in an array
+		const uploadedAddresses: string[] = await Promise.all(uploadPromises);
+
+		console.log('All files uploaded:', uploadedAddresses);
+
+		return uploadedAddresses;
+	} catch (error) {
+		console.error('Error uploading gallery:', error);
+		throw error;
 	}
 };
