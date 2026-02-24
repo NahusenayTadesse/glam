@@ -7,7 +7,7 @@
 	import { filesProxy } from 'sveltekit-superforms';
 	import { CloudUpload } from '@lucide/svelte';
 
-	let { form, name, errors, title = 'Upload Image' } = $props();
+	let { form, name, errors, title = 'Upload Image', images = $bindable() } = $props();
 
 	let file = filesProxy(form, name);
 
@@ -95,6 +95,7 @@
 				</div>
 			</div>
 		{/if}
+
 		<div class="flex flex-row gap-2">
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each $file as i, index (i.name)}
@@ -136,6 +137,39 @@
 				{/each}
 			</div>
 		</div>
+
+		{#if images.length}
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{#each images as i, index (i)}
+					<div
+						class="group relative flex flex-col overflow-hidden rounded-xl border bg-card p-2 shadow-sm transition-all hover:shadow-md"
+					>
+						<div class="relative aspect-square w-full overflow-hidden rounded-lg bg-muted">
+							<img
+								src="/files/{i}"
+								class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+								alt="Product Gallery"
+								transition:fade
+							/>
+
+							<div
+								class="absolute top-1 right-1 opacity-0 transition-opacity group-hover:opacity-100"
+							>
+								<Button
+									variant="destructive"
+									size="icon"
+									type="button"
+									class="h-7 w-7 rounded-full shadow-lg"
+									onclick={() => (images = images.filter((_, i) => i !== index))}
+								>
+									<X class="h-4 w-4" />
+								</Button>
+							</div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
 
 		{#if $errors[name]}
 			<p class="text-red-500">{$errors[name]._errors.join(', ')}</p>

@@ -2,14 +2,14 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import { editProduct } from '$lib/ZodSchema';
-
+	import { edit } from './schema.js';
 	let { data } = $props();
 
 	import SingleTable from '$lib/components/SingleTable.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { page } from '$app/state';
+	import InputComp from '$lib/formComponents/InputComp.svelte';
 
 	import LoadingBtn from '$lib/formComponents/LoadingBtn.svelte';
 	import { ArrowLeft, Pencil, Save, History } from '@lucide/svelte';
@@ -26,11 +26,9 @@
 	let singleTable = $derived([
 		{ name: 'Name', value: data.product?.name },
 		{ name: 'Category', value: data.product.category },
-		{ name: 'Cost Per Unit', value: data.product?.costPerUnit },
 		{ name: 'Price', value: data.product?.price },
 		{ name: 'Available Quantity', value: data.product?.quantity },
 		{ name: 'Product Description', value: data.product?.description },
-		{ name: 'Product Commission', value: data.product?.commission },
 		{ name: 'Reorder Notification Quantity', value: data.product?.reorderLevel },
 		{ name: 'Product Supplier', value: data?.product?.supplier },
 		{ name: 'Added On', value: data.product?.createdAt },
@@ -41,14 +39,13 @@
 				data.product?.saleCount === null
 					? '0 Pieces Sold'
 					: data.product?.saleCount + ' Pieces Sold'
-		},
-		{ name: 'Sales in Money', value: data.product?.paidAmount + ' Birr in Transactions' }
+		}
 	]);
 
 	const { form, errors, enhance, delayed, capture, restore, allErrors, message } = superForm(
 		data.form,
 		{
-			validators: zod4Client(editProduct),
+			validators: zod4Client(edit),
 			resetForm: false
 		}
 	);
@@ -68,8 +65,9 @@
 
 	//   let date = $derived(dateProxy(editForm, 'appointmentDate', { format: 'date'}));
 
-	let edit = $state(false);
+	let editForm = $state(false);
 	import { toast } from 'svelte-sonner';
+	import Gallery from '$lib/components/gallery.svelte';
 	$effect(() => {
 		if ($message) {
 			if ($message.type === 'error') {
@@ -79,80 +77,141 @@
 			}
 		}
 	});
+
+	let images = $derived(data?.images);
 </script>
 
 <svelte:head>
 	<title>Product Details</title>
 </svelte:head>
 
-<SingleView title="Product Details">
+<SingleView title={data?.product?.name} photo={String(data?.product?.image)} class="w-full!">
 	<div class="mt-4 flex w-full flex-row flex-wrap items-start justify-start gap-2 pl-4">
-		{#if data?.permList.some((p) => p.name === 'edit:products')}
-			<Button onclick={() => (edit = !edit)}>
-				{#if !edit}
-					<Pencil class="h-4 w-4" />
-					Edit
-				{:else}
-					<ArrowLeft class="h-4 w-4" />
+		<Button onclick={() => (editForm = !editForm)}>
+			{#if !editForm}
+				<Pencil class="h-4 w-4" />
+				Edit
+			{:else}
+				<ArrowLeft class="h-4 w-4" />
 
-					Back
-				{/if}
-			</Button>
-			<Adjustment data={data.adjustForm} name={data.product?.name} />
-			<Button href="/dashboard/products/{page.params.id}/ranges/{getCurrentMonthRange()}">
-				<History /> See Change History
-			</Button>
-			<Damaged data={data.damagedForm} name={data.product?.name} employees={data.employeesList} />
-			<Button href={`/dashboard/products/${page.params.id}/damaged/${getCurrentMonthRange()}`}>
-				<History /> See Damaged History
-			</Button>
-		{/if}
-		{#if data?.permList.some((p) => p.name === 'delete:products')}
-			<Delete redirect="/dashboard/products" />
-		{/if}
+				Back
+			{/if}
+		</Button>
+		<Adjustment data={data.adjustForm} name={data.product?.name} />
+		<Button href="/dashboard/products/{page.params.id}/ranges/{getCurrentMonthRange()}">
+			<History /> See Change History
+		</Button>
+		<Damaged data={data.damagedForm} name={data.product?.name} employees={data.employeesList} />
+		<Button href={`/dashboard/products/${page.params.id}/damaged/${getCurrentMonthRange()}`}>
+			<History /> See Damaged History
+		</Button>
+
+		<Delete redirect="/dashboard/products" />
 	</div>
-	{#if edit === false}
+	{#if editForm === false}
 		<div class="w-full p-4"><SingleTable {singleTable} /></div>
 	{/if}
-	{#if edit}
+	{#if editForm}
 		<div class="w-full p-4">
-			<form action="?/editProduct" use:enhance class="flex flex-col gap-4" id="edit" method="post">
+			<form
+				action="?/editProduct"
+				use:enhance
+				class="flex w-full flex-col items-start justify-start gap-4 lg:w-1/2"
+				id="edit"
+				method="post"
+			>
 				<Errors allErrors={$allErrors} />
 
-				{@render fe('Product Name', 'productName', 'text', 'Add Product Name', true)}
+				<InputComp
+					{form}
+					{errors}
+					type="file"
+					name="image"
+					label="Product Image"
+					placeholder="Upload Product Image"
+					required
+					image={String(data?.product?.image)}
+				/>
+				<InputComp
+					{form}
+					{errors}
+					type="text"
+					name="productName"
+					label="Product Name"
+					placeholder="Enter Product Name"
+					required
+				/>
+				<InputComp
+					{form}
+					{errors}
+					type="select"
+					name="category"
+					label="Product Category"
+					placeholder="Enter Product Name"
+					required
+					items={data?.allCategories}
+				/>
 
-				{@render selects('category', data.categories)}
-				{@render fe(
-					'Cost per unit',
-					'costPerUnit',
-					'number',
-					'Add the cost per unit of the product'
-				)}
+				<InputComp
+					{form}
+					{errors}
+					type="textarea"
+					name="description"
+					label="Product Discription"
+					placeholder="Enter Product Description"
+					required
+				/>
 
-				{@render fe('Price', 'price', 'number', 'Add Product Price', true)}
-				{@render fe('Quantity', 'quantity', 'number', 'Add Product Quantity', true)}
-				{@render fe('Commission', 'commission', 'number', 'Add Product Commision', true)}
-				<div class="flex w-full flex-col justify-start gap-2">
-					<Label for="notes">Product Description</Label>
+				<InputComp
+					{form}
+					{errors}
+					type="number"
+					name="quantity"
+					label="Quantity"
+					placeholder="Enter the number of items the product currently has"
+					required
+				/>
 
-					<Textarea
-						name="description"
-						placeholder="Enter product description"
-						bind:value={$form.description}
-						aria-invalid={$errors.description ? 'true' : undefined}
-					/>
+				<InputComp
+					{form}
+					{errors}
+					type="number"
+					name="price"
+					label="Price"
+					placeholder="Enter the price of item"
+					required
+				/>
+				<InputComp
+					{form}
+					{errors}
+					type="select"
+					name="supplier"
+					label="Product Category"
+					placeholder="Enter Product Name"
+					required
+					items={data?.supplierList}
+				/>
 
-					{#if $errors.description}<span class="text-red-500">{$errors.description}</span>{/if}
-				</div>
-				{@render fe(
-					'Reorder Notify Level',
-					'reorderLevel',
-					'number',
-					'Enter when you want to be notified'
-				)}
+				<InputComp
+					{form}
+					{errors}
+					type="number"
+					name="reorderLevel"
+					label="Reorder Notify Level"
+					placeholder="Enter when you want to be notified"
+					required
+				/>
 
-				{@render selects('supplier', data?.supplierList)}
-				<input hidden name="productId" value={data.product.id} />
+				<InputComp
+					{form}
+					{errors}
+					type="number"
+					name="costPerUnit"
+					label="Cost per unit"
+					placeholder="Enter Cost Per Unit"
+					required
+				/>
+
 				<Button form="edit" type="submit" class="mt-4">
 					{#if $delayed}
 						<LoadingBtn name="Saving Changes" />
@@ -166,37 +225,33 @@
 	{/if}
 </SingleView>
 
-{#snippet fe(
-	label = '',
-	name = '',
-	type = '',
-	placeholder = '',
-	required = false,
-	min = '',
-	max = ''
-)}
-	<div class="flex w-full flex-col justify-start gap-2">
-		<Label for={name}>{label}</Label>
-		<Input
-			{type}
-			{name}
-			{placeholder}
-			{required}
-			{min}
-			{max}
-			bind:value={$form[name]}
-			aria-invalid={$errors[name] ? 'true' : undefined}
-		/>
-		{#if $errors[name]}
-			<span class="text-red-500">{$errors[name]}</span>
-		{/if}
-	</div>
-{/snippet}
-{#snippet selects(name, items)}
-	<div class="flex w-full flex-col justify-start gap-2">
-		<Label for={name} class="capitalize">{name.replace(/([a-z])([A-Z])/g, '$1 $2')}:</Label>
+<div class="mx-auto my-12 px-4 sm:px-6 lg:px-4">
+	{#if data?.product?.name}
+		<div class="mb-6 border-b border-gray-100 pb-4">
+			<nav class="mb-2 text-xs font-medium tracking-wider text-gray-400 uppercase">
+				Gallery Images
+			</nav>
+			<h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+				{data.product.name}
+			</h1>
+		</div>
+	{/if}
 
-		<SelectComp {name} bind:value={$form[name]} {items} />
-		{#if $errors[name]}<span class="text-red-500">{$errors[name]}</span>{/if}
+	<div
+		class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl transition-shadow hover:shadow-2xl"
+	>
+		<div class="p-3 sm:p-6">
+			<Gallery images={data?.images} title={data?.product?.name} />
+			<InputComp
+				{form}
+				{errors}
+				type="gallery"
+				name="gallery"
+				label="Product Image"
+				placeholder="Upload Product Gallery"
+				required
+				bind:images
+			/>
+		</div>
 	</div>
-{/snippet}
+</div>

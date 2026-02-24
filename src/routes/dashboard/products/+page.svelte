@@ -37,7 +37,7 @@
 				data={data?.productList}
 				filterKeys={['category', 'commission', 'quantity', 'supplier']}
 			/>
-			<DataTable data={filteredList} {columns} />
+			<DataTable data={filteredList} {columns} fileName="Product List" />
 		</div>
 	{/if}
 {:catch}

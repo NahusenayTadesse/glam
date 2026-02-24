@@ -130,16 +130,6 @@
 		<InputComp
 			{form}
 			{errors}
-			type="number"
-			name="costPerUnit"
-			label="Cost per unit"
-			placeholder="Enter Cost Per Unit"
-			required
-		/>
-
-		<InputComp
-			{form}
-			{errors}
 			type="file"
 			name="image"
 			label="Product Image"

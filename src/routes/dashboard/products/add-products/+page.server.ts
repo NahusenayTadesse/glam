@@ -12,7 +12,6 @@ import {
 import type { Actions } from './$types';
 import type { PageServerLoad } from './$types.js';
 import { setFlash } from 'sveltekit-flash-message/server';
-import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async () => {
@@ -62,7 +61,7 @@ export const actions: Actions = {
 			price,
 			supplier,
 			reorderLevel,
-			costPerUnit,
+
 			image,
 			gallery
 		} = form.data;
@@ -85,8 +84,7 @@ export const actions: Actions = {
 						price,
 						supplierId: supplier,
 						reorderLevel,
-						featuredImage,
-						cost: costPerUnit
+						featuredImage
 					})
 					.$returningId();
 

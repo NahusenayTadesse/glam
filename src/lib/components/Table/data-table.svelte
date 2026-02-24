@@ -26,7 +26,7 @@
 		columns,
 		search = true,
 		class: className = '',
-		fileName = 'Spotless File'
+		fileName = 'File'
 	}: DataTableProps<TData, TValue> = $props();
 	// let filterSchema = $derived(
 	//   discoverFilterSchema(data).filter(meta => !filterBlacklist.includes(meta.key))

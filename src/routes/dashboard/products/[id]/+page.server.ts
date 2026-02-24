@@ -1,114 +1,21 @@
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import {
-	editProduct as schema,
-	inventoryAdjustmentFormSchema as adjustSchema,
-	damagedFormSchema as damagedSchema
-} from '$lib/ZodSchema';
+
+import { edit, adjust, damaged } from './schema';
 
 import { db } from '$lib/server/db';
-import {
-	productCategories,
-	products,
-	transactionProducts,
-	transactions,
-	user,
-	productAdjustments,
-	productSuppliers,
-	staff,
-	damagedProducts,
-	deductions
-} from '$lib/server/db/schema';
+import { products, productAdjustments, damagedProducts, transactions } from '$lib/server/db/schema';
 import { eq, and, sql, isNotNull, desc } from 'drizzle-orm';
-import type { Actions, PageServerLoad } from './$types';
+import type { Actions } from './$types';
 import { fail, message } from 'sveltekit-superforms';
 import { setFlash } from 'sveltekit-flash-message/server';
-
-// export const load: PageServerLoad = async ({ params, locals }) => {
-// 	const { id } = params;
-// 	const form = await superValidate(zod4(schema));
-// 	const adjustForm = await superValidate(zod4(adjustSchema));
-// 	const damagedForm = await superValidate(zod4(damagedSchema));
-
-// 	const supplierList = await db
-// 		.select({
-// 			value: productSuppliers.id,
-// 			name: productSuppliers.name
-// 		})
-// 		.from(productSuppliers)
-// 		.where(eq(productSuppliers.isActive, true));
-
-// 	const product = await db
-// 		.select({
-// 			id: products.id,
-// 			name: products.name,
-// 			price: products.price,
-// 			costPerUnit: products.cost,
-// 			description: products.description,
-// 			category: productCategories.name,
-// 			categoryId: productCategories.id,
-// 			commission: products.commissionAmount,
-// 			quantity: products.quantity,
-// 			reorderLevel: products.reorderLevel,
-// 			supplier: productSuppliers.name,
-// 			supplierId: productSuppliers.id,
-// 			saleCount: sql<number>`SUM(${transactionProducts.quantity})`,
-// 			createdBy: user.name,
-// 			createdAt: sql<string>`DATE_FORMAT(${products.createdAt}, '%Y-%m-%d')`,
-// 			paidAmount: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`
-// 		})
-// 		.from(products)
-// 		.leftJoin(productCategories, eq(productCategories.id, products.categoryId))
-// 		.leftJoin(productSuppliers, eq(productSuppliers.id, products.supplierId))
-// 		.leftJoin(transactionProducts, eq(products.id, transactionProducts.productId))
-// 		.leftJoin(transactions, eq(transactionProducts.transactionId, transactions.id))
-// 		.leftJoin(user, eq(products.createdBy, user.id))
-// 		.where(eq(products.id, Number(id)))
-// 		.groupBy(
-// 			products.id,
-// 			products.name,
-// 			products.price,
-// 			products.cost,
-// 			products.description,
-// 			productCategories.name,
-// 			products.commissionAmount,
-// 			products.quantity,
-// 			productSuppliers.name,
-// 			products.reorderLevel,
-// 			transactionProducts.id
-// 		)
-// 		.then((rows) => rows[0]);
-
-// 	const categories = await db
-// 		.select({
-// 			value: productCategories.id,
-// 			name: productCategories.name,
-// 			description: productCategories.description
-// 		})
-// 		.from(productCategories);
-// 	const employeesList = await db
-// 		.select({
-// 			value: staff.id,
-// 			name: sql<string>`TRIM(CONCAT(${staff.firstName}, ' ', COALESCE(${staff.lastName}, '')))`
-// 		})
-// 		.from(staff);
-
-// 	return {
-// 		product,
-// 		form,
-// 		categories,
-// 		adjustForm,
-// 		supplierList,
-// 		damagedForm,
-// 		employeesList
-// 	};
-// };
 
 import { saveUploadedFile } from '$lib/server/upload';
 
 export const actions: Actions = {
-	editProduct: async ({ request, cookies, locals }) => {
-		const form = await superValidate(request, zod4(schema));
+	editProduct: async ({ request, cookies, locals, params }) => {
+		const { id } = params;
+		const form = await superValidate(request, zod4(edit));
 
 		if (!form.valid) {
 			// Stay on the same page and set a flash message
@@ -116,35 +23,42 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
-		const {
-			productId,
-			productName,
-			category,
-			description,
-			commission,
-			quantity,
-			price,
-			supplier,
-			reorderLevel,
-			costPerUnit
-		} = form.data;
+		const { productName, category, description, quantity, price, supplier, reorderLevel, image } =
+			form.data;
 
 		try {
-			await db
-				.update(products)
-				.set({
-					name: productName,
-					commissionAmount: commission.toString(),
-					description,
-					categoryId: category,
-					quantity,
-					price: price.toString(),
-					supplierId: supplier,
-					reorderLevel,
-					cost: costPerUnit.toString(),
-					updatedBy: locals?.user?.id
-				})
-				.where(eq(products.id, productId));
+			if (image) {
+				const featuredImage = await saveUploadedFile(image);
+
+				await db
+					.update(products)
+					.set({
+						name: productName,
+						description,
+						categoryId: category,
+						quantity,
+						price: price.toString(),
+						supplierId: supplier,
+						reorderLevel,
+						updatedBy: locals?.user?.id,
+						featuredImage
+					})
+					.where(eq(products.id, Number(id)));
+			} else {
+				await db
+					.update(products)
+					.set({
+						name: productName,
+						description,
+						categoryId: category,
+						quantity,
+						price: price.toString(),
+						supplierId: supplier,
+						reorderLevel,
+						updatedBy: locals?.user?.id
+					})
+					.where(eq(products.id, Number(id)));
+			}
 
 			// Stay on the same page and set a flash message
 			setFlash({ type: 'success', message: 'Product Updated Successuflly Added' }, cookies);
@@ -158,7 +72,7 @@ export const actions: Actions = {
 	},
 	adjust: async ({ request, cookies, params, locals }) => {
 		const { id } = params;
-		const form = await superValidate(request, zod4(adjustSchema));
+		const form = await superValidate(request, zod4(adjust));
 
 		const { intent, quantity, reason, reciept } = form.data;
 
@@ -177,13 +91,12 @@ export const actions: Actions = {
 					.values({
 						amount: adjustment,
 						recieptLink,
-						createdBy: locals.user?.id,
-						branchId: locals.user?.branch
+						createdBy: locals.user?.id
 					})
 					.$returningId();
 
 				await db.insert(productAdjustments).values({
-					productsId: id,
+					productsId: Number(id),
 					adjustment,
 					reason,
 					transactionId: transactionId.id,
@@ -227,7 +140,7 @@ export const actions: Actions = {
 				return fail(400);
 			}
 
-			await db.delete(products).where(eq(products.id, id));
+			await db.delete(products).where(eq(products.id, Number(id)));
 
 			setFlash({ type: 'success', message: 'Product Deleted Successfully!' }, cookies);
 		} catch (err) {
@@ -238,9 +151,9 @@ export const actions: Actions = {
 	},
 	damaged: async ({ params, locals, request }) => {
 		const { id } = params;
-		const form = await superValidate(request, zod4(damagedSchema));
+		const form = await superValidate(request, zod4(damaged));
 
-		const { quantity, damagedBy, deductable, reason } = form.data;
+		const { quantity, damagedBy, reason } = form.data;
 
 		try {
 			if (!id) {
@@ -253,8 +166,7 @@ export const actions: Actions = {
 					productId: Number(id),
 					quantity: Number(quantity),
 					createdBy: locals.user?.id,
-					damagedBy: Number(damagedBy),
-					deductable,
+					damagedBy,
 					reason
 				});
 
@@ -266,29 +178,6 @@ export const actions: Actions = {
 						updatedBy: locals.user?.id
 					})
 					.where(eq(products.id, Number(id)));
-
-				// 3. Handle deductions if applicable
-				if (deductable) {
-					const costRecord = await tx
-						.select({
-							price: products.price
-						})
-						.from(products)
-						.where(eq(products.id, Number(id)))
-
-						.then((rows) => rows[0]);
-
-					// Guard clause: ensure we actually found a cost before inserting deduction
-
-					await tx.insert(deductions).values({
-						staffId: Number(damagedBy),
-						type: 'Damaged Product Item',
-						deductionDate: new Date(),
-						createdBy: locals.user?.id,
-						amount: Number(quantity) * Number(costRecord.price),
-						reason
-					});
-				}
 			});
 
 			return message(form, { type: 'success', text: 'Damaged supply added Successfully!' });

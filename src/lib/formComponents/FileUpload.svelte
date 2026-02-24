@@ -100,15 +100,12 @@
 
 			<div class="overflow-hidden rounded-lg border bg-muted/30">
 				{#if image.toLowerCase().endsWith('.pdf')}
-					<iframe
-						src="/dashboard/files/{image}"
-						class="h-64 w-full"
-						frameborder="0"
-						title="pdf-preview"
+					<iframe src="/files/{image}" class="h-64 w-full" frameborder="0" title="pdf-preview"
 					></iframe>
 				{:else}
 					<img
-						src="/dashboard/files/{image}"
+						src="/files/{image}"
+						loading="lazy"
 						class="max-h-80 w-full object-contain"
 						alt="Preview"
 					/>

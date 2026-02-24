@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { user, damagedProducts, staff as employee } from '$lib/server/db/schema';
+import { user, damagedProducts } from '$lib/server/db/schema';
 import { and, asc, eq, sql } from 'drizzle-orm';
 
 import { currentMonthFilter } from '$lib/global.svelte';
@@ -20,14 +20,12 @@ export const load: PageServerLoad = async ({ params }) => {
 			date: sql<string>`DATE_FORMAT(${damagedProducts.createdAt}, '%W %Y-%m-%d')`,
 			quantity: damagedProducts.quantity,
 			reason: damagedProducts.reason,
-			damagedBy: sql<string>`CONCAT(${employee.firstName}, ' ', ${employee.lastName})`,
-			damagedById: damagedProducts.damagedBy,
+			damagedBy: damagedProducts.damagedBy,
 			changedById: user.id,
 			changedBy: user.name
 		})
 		.from(damagedProducts)
 		.leftJoin(user, eq(damagedProducts.createdBy, user.id))
-		.leftJoin(employee, eq(employee.id, damagedProducts.damagedBy))
 		.where(
 			and(
 				eq(damagedProducts.productId, Number(id)),

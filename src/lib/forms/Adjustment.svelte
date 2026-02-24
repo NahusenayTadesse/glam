@@ -13,16 +13,13 @@
 
 	let {
 		data,
-		name = 'product',
-		employees
+		name = 'product'
 	}: {
 		data: SuperValidated<Infer<InventoryAdjustmentForm>>;
 		name: string;
-		employees?: Item[];
 	} = $props();
 	const { form, errors, enhance, delayed, message } = superForm(data, {});
 	import { toast } from 'svelte-sonner';
-	import type { Item } from '$lib/global.svelte';
 	$effect(() => {
 		if ($message) {
 			if ($message.type === 'error') {
@@ -89,12 +86,11 @@
 					<InputComp
 						label="Employee Responsible"
 						name="employeeResponsible"
-						type="combo"
+						type="text"
 						{form}
 						{errors}
 						placeholder="Enter Quantity"
 						required={true}
-						items={employees}
 					/>
 
 					{#if $form.intent === 'add'}

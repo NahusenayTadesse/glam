@@ -27,7 +27,8 @@
 		oldDays = true,
 		year = false,
 		futureDays = false,
-		image = ''
+		image = '',
+		images = $bindable()
 	} = $props();
 </script>
 
@@ -38,7 +39,7 @@
 	{:else if type === 'file'}
 		<FileUpload {name} {form} {image} {placeholder} />
 	{:else if type === 'gallery'}
-		<GalleryUpload {name} {form} {errors} title={placeholder} />
+		<GalleryUpload {name} {form} {errors} title={placeholder} bind:images />
 	{:else if type === 'select'}
 		<SelectComp {name} bind:value={$form[name]} {items} />
 	{:else if type === 'date'}
