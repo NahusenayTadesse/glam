@@ -4,17 +4,20 @@
 	// import DialogComp from "$lib/formComponents/DialogComp.svelte";
 	// import AddCustomer from "$lib/forms/AddCustomer.svelte";
 	import { Plus, Sheet } from '@lucide/svelte';
-	let { data, children } = $props();
+	let { children } = $props();
 </script>
 
 <div class="mb-8 flex flex-row items-center justify-start gap-2">
-	{#if data?.permList?.some((p) => p.name === 'add:products')}
-		<Button
-			href="/dashboard/products/add-products"
-			variant={page.url.pathname === '/dashboard/products/add-products' ? 'default' : 'outline'}
-			><Plus /> Add Products</Button
-		>
-	{/if}
+	<Button
+		href="/dashboard/products"
+		variant={page.url.pathname === '/dashboard/products' ? 'default' : 'outline'}
+		><Sheet /> Products</Button
+	>
+	<Button
+		href="/dashboard/products/add-products"
+		variant={page.url.pathname === '/dashboard/products/add-products' ? 'default' : 'outline'}
+		><Plus /> Add Products</Button
+	>
 
 	<Button
 		href="/dashboard/products/categories"
@@ -32,13 +35,6 @@
 			? 'default'
 			: 'outline'}><Plus /> Add Suppliers</Button
 	>
-	<!-- <DialogComp title="Add New Customer" {content} /> -->
 </div>
-
-<!-- {#snippet content()}
-
-  <AddCustomer data={data?.form} action="/dashbaord/customers?/addCustomer" />
-
-{/snippet} -->
 
 {@render children?.()}

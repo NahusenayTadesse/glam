@@ -55,7 +55,6 @@
 		($form.commission = data.product.commission),
 		($form.description = data.product.description),
 		($form.productId = data.product.id),
-		($form.costPerUnit = data.product.costPerUnit),
 		($form.quantity = data.product.quantity),
 		($form.price = data.product.price),
 		($form.reorderLevel = data.product.reorderLevel),
@@ -99,7 +98,9 @@
 				Back
 			{/if}
 		</Button>
-		<Adjustment data={data.adjustForm} name={data.product?.name} />
+		{#key data?.product}
+			<Adjustment data={data.adjustForm} name={data.product?.name} />
+		{/key}
 		<Button href="/dashboard/products/{page.params.id}/ranges/{getCurrentMonthRange()}">
 			<History /> See Change History
 		</Button>
@@ -201,16 +202,6 @@
 					name="reorderLevel"
 					label="Reorder Notify Level"
 					placeholder="Enter when you want to be notified"
-					required
-				/>
-
-				<InputComp
-					{form}
-					{errors}
-					type="number"
-					name="costPerUnit"
-					label="Cost per unit"
-					placeholder="Enter Cost Per Unit"
 					required
 				/>
 

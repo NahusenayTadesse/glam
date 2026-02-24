@@ -21,7 +21,7 @@
 			<div class="flex flex-row items-center gap-4">
 				<Search />
 				<DarkMode />
-				<AvatarSettings data={data?.role?.name} />
+				<AvatarSettings data={data?.name} />
 			</div>
 		</div>
 		<div class="p-2 pt-24 pb-24 lg:pt-4 lg:pb-4">

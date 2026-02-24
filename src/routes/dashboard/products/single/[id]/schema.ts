@@ -33,11 +33,6 @@ export const edit = z.object({
 		.positive({ message: 'Reorder Level must be a positive number.' })
 		.default(0),
 
-	costPerUnit: z
-		.number({ message: 'Cost is required' })
-		.positive({ message: 'Cost must be a positive number.' })
-		.default(0),
-
 	image: z
 		.instanceof(File)
 		.refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 10MB.`)
