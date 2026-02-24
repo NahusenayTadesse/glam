@@ -73,3 +73,15 @@ export const damaged = z.object({
 });
 
 export type DamagedForm = z.infer<typeof damaged>;
+
+export const editGallery = z.object({
+	existing: z.string(),
+	gallery: z
+		.instanceof(File)
+		.refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 10MB.`)
+		.refine((file) => ACCEPTED_FILE_TYPES.includes(file.type), 'Invalid file type.')
+		.array()
+		.optional()
+});
+
+export type EditGallery = z.infer<typeof editGallery>;

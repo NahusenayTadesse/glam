@@ -15,7 +15,7 @@
 <svelte:head>
 	<title>Quantity Change History</title>
 </svelte:head>
-<Button href="/dashboard/products/{page.params.id}" class="justify-self-start"
+<Button href="/dashboard/products/single/{page.params.id}" class="justify-self-start"
 	><ArrowLeft /> Back</Button
 >
 {#await data}
@@ -26,22 +26,22 @@
 			<p class="justify-self-cente mt-4 flex flex-row gap-4 text-center text-4xl">
 				<Frown class="h-12 w-16  animate-bounce" />
 
-				Damage History is Empty for this Date Range Choose Another Range
+				Change History is Empty for this Date Range Choose Another Range
 			</p>
 			<DateMonth
 				start={data?.start}
 				end={data?.end}
-				link="/dashboard/products/{page.params.id}/damaged"
+				link="/dashboard/products/single/{page.params.id}/ranges"
 			/>
 		</div>
 	{:else}
 		<div class="flex flex-col gap-4">
-			<h2 class="my-4 text-2xl">No of Damages {data.allTransactions?.length}</h2>
+			<h2 class="my-4 text-2xl">No of Changes {data.allTransactions?.length}</h2>
 
 			<DateMonth
 				start={data?.start}
 				end={data?.end}
-				link="/dashboard/products/{page.params.id}/damaged"
+				link="/dashboard/products/single/{page.params.id}/ranges"
 			/>
 
 			<!-- <div class="lg:w-[1250px] w-[350px] lg:p-0 p-2 mt-8 mb-4 pt-4 px-2">
@@ -49,11 +49,7 @@
 
    <DataTable data={data.allTransactions} {columns}  />
  </div> -->
-			<DataTable
-				data={data.allTransactions}
-				{columns}
-				fileName="{data?.product.name} Supply History"
-			/>
+			<DataTable data={data.allTransactions} {columns} search={false} />
 		</div>
 	{/if}
 {:catch}

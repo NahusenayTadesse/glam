@@ -66,8 +66,10 @@
 	//   let date = $derived(dateProxy(editForm, 'appointmentDate', { format: 'date'}));
 
 	let editForm = $state(false);
+	let editGallery = $state(false);
 	import { toast } from 'svelte-sonner';
 	import Gallery from '$lib/components/gallery.svelte';
+	import EditGallery from './editGallery.svelte';
 	$effect(() => {
 		if ($message) {
 			if ($message.type === 'error') {
@@ -241,17 +243,22 @@
 		class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl transition-shadow hover:shadow-2xl"
 	>
 		<div class="p-3 sm:p-6">
-			<Gallery images={data?.images} title={data?.product?.name} />
-			<InputComp
-				{form}
-				{errors}
-				type="gallery"
-				name="gallery"
-				label="Product Image"
-				placeholder="Upload Product Gallery"
-				required
-				bind:images
-			/>
+			<Button onclick={() => (editGallery = !editGallery)} class="mb-4">
+				{#if !editGallery}
+					<Pencil class="h-4 w-4" />
+					Edit
+				{:else}
+					<ArrowLeft class="h-4 w-4" />
+
+					Back
+				{/if}
+			</Button>
+
+			{#if !editGallery}
+				<Gallery images={data?.images} title={data?.product?.name} />
+			{:else}
+				<EditGallery data={data?.galleryEdit} bind:images />
+			{/if}
 		</div>
 	</div>
 </div>

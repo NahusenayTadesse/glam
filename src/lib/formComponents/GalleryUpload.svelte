@@ -139,7 +139,7 @@
 		</div>
 
 		{#if images.length}
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{#each images as i, index (i)}
 					<div
 						class="group relative flex flex-col overflow-hidden rounded-xl border bg-card p-2 shadow-sm transition-all hover:shadow-md"

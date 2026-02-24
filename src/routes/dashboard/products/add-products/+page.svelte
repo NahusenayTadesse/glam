@@ -38,6 +38,8 @@
 			}
 		}
 	});
+
+	let images = $state([]);
 </script>
 
 <svelte:head>
@@ -144,6 +146,7 @@
 			label="Product Gallery Images"
 			placeholder="Upload Product Gallery Images"
 			required
+			bind:images
 		/>
 
 		<Button type="submit" class="mt-4" form="main">
