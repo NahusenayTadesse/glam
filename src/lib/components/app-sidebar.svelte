@@ -7,7 +7,8 @@
 		Container,
 		Banknote,
 		Plus,
-		Sheet
+		Sheet,
+		ListOrdered
 	} from '@lucide/svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import type { ComponentProps } from 'svelte';
@@ -18,7 +19,8 @@
 
 	const navigation = [
 		{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-		{ title: 'Orders', url: '/dashboard/orders', icon: Sheet },
+		{ title: 'Customers', url: '/dashboard/customers', icon: Users },
+		{ title: 'Orders', url: '/dashboard/orders', icon: ListOrdered },
 
 		{
 			title: 'Products',
