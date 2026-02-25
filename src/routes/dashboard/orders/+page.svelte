@@ -5,7 +5,13 @@
 	import Statuses from '$lib/components/Table/statuses.svelte';
 	import DialogComp from '$lib/formComponents/DialogComp.svelte';
 	import { Button } from '$lib/components/ui/button/index';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+
+	import ComboboxComp from '$lib/formComponents/ComboboxComp.svelte';
 	import Edit from './edit.svelte';
+	let arrParts = `flex flex-col justify-start gap-2 w-full`;
+
 	export const columns = [
 		{
 			accessorKey: 'index',
@@ -22,15 +28,30 @@
 				}),
 			sortable: true,
 			cell: ({ row }) => {
-				// You can pass whatever you need from `row.original` to the component
 				return renderComponent(Edit, {
 					id: row.original.id,
-					name: row.original.name,
-					description: row.original.description,
-					action: '?/edit',
+					customer: row.original.customerId,
+					customerList: data?.fetchedCustomers,
+					customerName: row.original.name,
+					orderItems: data?.allItems,
+					productList: data?.fetchedProducts,
 					data: data?.editForm,
 					icon: false,
 					status: row.original.status
+				});
+			}
+		},
+
+		{
+			accessorKey: 'items',
+			header: 'Items',
+			sortable: true,
+			cell: ({ row }) => {
+				return renderComponent(OrderItems, {
+					items:
+						data?.allItems?.filter((item) => Number(item.orderId) === Number(row.original.id)) ??
+						[],
+					currency: 'ETB'
 				});
 			}
 		},
@@ -41,7 +62,7 @@
 			sortable: true,
 			cell: ({ row }) => {
 				return renderComponent(Statuses, {
-					status: row.original.status ? 'Active' : 'Inactive'
+					status: row.original.status
 				});
 			}
 		},
@@ -51,12 +72,13 @@
 			header: 'Edit',
 			sortable: true,
 			cell: ({ row }) => {
-				// You can pass whatever you need from `row.original` to the component
 				return renderComponent(Edit, {
 					id: row.original.id,
-					name: row.original.name,
-					description: row.original.description,
-					action: '?/edit',
+					customer: row.original.customerId,
+					customerList: data?.fetchedCustomers,
+					customerName: row.original.name,
+					orderItems: data?.allItems,
+					productList: data?.fetchedProducts,
 					data: data?.editForm,
 					icon: true,
 					status: row.original.status
@@ -68,11 +90,19 @@
 	import { superForm } from 'sveltekit-superforms/client';
 	import InputComp from '$lib/formComponents/InputComp.svelte';
 	import LoadingBtn from '$lib/formComponents/LoadingBtn.svelte';
-	import { Plus } from '@lucide/svelte';
+	import { Plus, X } from '@lucide/svelte';
 
-	const { form, errors, enhance, delayed, message } = superForm(data.form, {});
+	const { form, errors, enhance, delayed, message } = superForm(data.form, {
+		dataType: 'json'
+	});
 
 	import { toast } from 'svelte-sonner';
+	import OrderItems from './order-items.svelte';
+
+	function addProduct() {
+		$form.selectedProducts = [...$form.selectedProducts, { product: 0, quantity: 1 }];
+	}
+
 	$effect(() => {
 		if ($message) {
 			if ($message.type === 'error') {
@@ -82,26 +112,87 @@
 			}
 		}
 	});
+	import { fly } from 'svelte/transition';
 </script>
 
 <svelte:head>
-	<title>Product Categories</title>
+	<title>Orders</title>
 </svelte:head>
 
-<DialogComp title="+ Add New Category" variant="default">
-	<form action="?/add" use:enhance id="main" class="flex flex-col gap-4" method="post">
-		<InputComp {form} {errors} label="name" type="text" name="name" required={true} />
-
+<DialogComp title="+ Add New Order" variant="default">
+	<form
+		action="?/add"
+		use:enhance
+		id="main"
+		class="flex flex-col gap-4"
+		method="post"
+		enctype="multipart/form-data"
+	>
 		<InputComp
+			label="Customer"
+			name="customer"
+			type="combo"
 			{form}
 			{errors}
-			label="Description"
-			type="textarea"
-			name="description"
-			placeholder="Enter Product Description"
-			required={true}
-			rows={10}
+			items={data?.fetchedCustomers}
 		/>
+		<div class="mb-4 flex justify-end">
+			<Button type="button" size="sm" class="gap-2" onclick={() => addProduct()}>
+				<Plus class="h-4 w-4" />
+				<span>Add Product</span>
+			</Button>
+		</div>
+		{#each $form.selectedProducts as product, i (product.product)}
+			<div
+				class="flex w-full flex-col items-end gap-3
+ rounded-lg border
+ border-white/20 bg-white/10 p-3 shadow-lg
+  backdrop-blur-lg lg:flex-row dark:border-black/20 dark:bg-gray-700"
+				transition:fly={{ x: -200, duration: 200 }}
+			>
+				<div class={arrParts}>
+					<Label for="product">Selling Product</Label>
+
+					<ComboboxComp
+						items={data?.fetchedProducts}
+						name="selectedProducts"
+						required={true}
+						bind:value={$form.selectedProducts[i].product}
+					/>
+
+					{#if $errors.selectedProducts?.[i]?.product}
+						<p class="text-sm text-red-500">{$errors.selectedProducts[i].product}</p>
+					{/if}
+				</div>
+
+				<div class={arrParts}>
+					<Label for="noofproducts">Number of Product</Label>
+
+					<Input
+						type="number"
+						min="1"
+						name="quantity"
+						bind:value={$form.selectedProducts[i].quantity}
+					/>
+
+					{#if $errors.selectedProducts?.[i]?.quantity}
+						<p class="text-sm text-red-500">{$errors.selectedProducts[i].quantity}</p>
+					{/if}
+				</div>
+				<Button
+					type="button"
+					variant="outline"
+					title="Remove this product from list"
+					onclick={() => {
+						$form.selectedProducts.splice(i, 1);
+						$form.selectedProducts = $form.selectedProducts;
+					}}
+				>
+					<X class="h-8 w-8" />
+				</Button>
+			</div>
+		{/each}
+
 		<InputComp
 			label="Status"
 			name="status"
@@ -109,16 +200,17 @@
 			{form}
 			{errors}
 			items={[
-				{ value: true, name: 'Active' },
-				{ value: false, name: 'Inactive' }
+				{ value: 'pending', name: 'Pending' },
+				{ value: 'delivered', name: 'Delivered' },
+				{ value: 'cancelled', name: 'Cancelled' }
 			]}
 		/>
 
 		<Button type="submit" form="main">
 			{#if $delayed}
-				<LoadingBtn name="Adding Department" />
+				<LoadingBtn name="Adding Order" />
 			{:else}
-				<Plus /> Add Position
+				<Plus /> Add Order
 			{/if}
 		</Button>
 	</form>

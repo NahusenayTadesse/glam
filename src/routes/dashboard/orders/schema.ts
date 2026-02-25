@@ -1,16 +1,31 @@
-import type { Description } from '$lib/components/ui/sheet';
 import { z } from 'zod/v4';
 
 export const add = z.object({
-	name: z.string('Name of Payment Method is required').min(2).max(50),
-	description: z.string('Description is required').min(2).max(100),
-	status: z.boolean('Status is required')
+	customer: z.coerce.number('Customer is required'),
+	selectedProducts: z
+		.object({
+			product: z.number({ message: 'Product is required' }).int().positive('Product is required'),
+			quantity: z.number().int().positive('Number of products must be at least 1')
+		})
+		.array(),
+
+	status: z
+		.enum(['pending', 'delivered', 'cancelled'], { message: 'Status is required' })
+		.default('pending')
 });
 
 export const edit = z.object({
-	id: z.coerce.string(),
-	name: z.string('Name of Payment Method is required').min(2).max(50),
-	description: z.string('Description is required').min(2).max(100),
-	status: z.boolean('Status is required')
+	id: z.coerce.number(),
+	customer: z.coerce.number('Customer is required'),
+	selectedProducts: z
+		.object({
+			product: z.number({ message: 'Product is required' }).int().positive('Product is required'),
+			quantity: z.number().int().positive('Number of products must be at least 1')
+		})
+		.array(),
+
+	status: z
+		.enum(['pending', 'delivered', 'cancelled'], { message: 'Status is required' })
+		.default('pending')
 });
 export type Edit = z.infer<typeof edit>;

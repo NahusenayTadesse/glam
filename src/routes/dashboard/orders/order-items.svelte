@@ -4,8 +4,15 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
 	import { PackageIcon, ChevronDownIcon } from '@lucide/svelte';
-	import type { OrderItem } from '$lib/types/order.js';
-
+	type OrderItem = {
+		id: string | number;
+		orderId: string | number;
+		product: string;
+		quantity: number | string;
+		price: string | number;
+		productId: string | number;
+		total: number;
+	};
 	type Props = {
 		items: OrderItem[];
 		/** Currency symbol to display */
@@ -14,11 +21,11 @@
 
 	const { items, currency = 'ETB' }: Props = $props();
 
-	const totalItems = $derived(items.reduce((sum, item) => sum + item.quantity, 0));
+	const totalItems = $derived(items.reduce((sum, item) => sum + Number(item.quantity), 0));
 	const grandTotal = $derived(items.reduce((sum, item) => sum + item.total, 0));
 
 	/** Format price with currency */
-	const formatPrice = (price: number) => `${currency}${price.toFixed(2)}`;
+	const formatPrice = (price: number | string) => `${currency} ${Number(price)}`;
 </script>
 
 {#if items.length === 0}
