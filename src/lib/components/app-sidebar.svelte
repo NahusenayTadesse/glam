@@ -8,6 +8,9 @@
 		Banknote,
 		Plus,
 		Sheet,
+		Loader,
+		CircleCheckBig,
+		OctagonMinus,
 		ListOrdered
 	} from '@lucide/svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
@@ -20,7 +23,17 @@
 	const navigation = [
 		{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
 		{ title: 'Customers', url: '/dashboard/customers', icon: Users },
-		{ title: 'Orders', url: '/dashboard/orders', icon: ListOrdered },
+		{
+			title: 'Orders',
+			url: '/dashboard/orders',
+			icon: ListOrdered,
+			items: [
+				{ title: 'All Orders', url: '/dashboard/orders/all-orders', icon: Sheet },
+				{ title: 'Pending Orders', url: '/dashboard/orders', icon: Loader },
+				{ title: 'Delivered Orders', url: '/dashboard/orders/delivered', icon: CircleCheckBig },
+				{ title: 'Cancelled Orders', url: '/dashboard/orders/cancelled', icon: OctagonMinus }
+			]
+		},
 
 		{
 			title: 'Products',
@@ -28,7 +41,7 @@
 			icon: Container,
 			items: [
 				{ title: 'All Products', url: '/dashboard/products', icon: Sheet },
-				{ title: 'Add Product', url: '/dashboard/products/add-product', icon: Plus },
+				{ title: 'Add Product', url: '/dashboard/products/add-products', icon: Plus },
 				{ title: 'Suppliers', url: '/dashboard/products/suppliers', icon: Sheet },
 				{ title: 'Add Supplier', url: '/dashboard/products/add-supplier', icon: Plus }
 			]
@@ -93,7 +106,7 @@
 		<Sidebar.Group>
 			<Sidebar.GroupLabel>
 				<div class="flex flex-row items-center justify-center gap-4">
-					<h4 class="text-center text-[30px]! text-primary">Glam</h4>
+					<h4 class="text-center text-[30px]! text-primary">Amy Bakes</h4>
 				</div></Sidebar.GroupLabel
 			>
 			<Sidebar.GroupContent class="my-4">
@@ -122,7 +135,7 @@
 	</Sidebar.Content>
 	<Sidebar.Footer class="flex flex-row bg-white dark:bg-black">
 		<Sidebar.GroupLabel>
-			Powered By <a href="https://pulsedata.com" target="_blank" class="ml-1">Suna Marketing</a>
+			Powered By <a href="https://pulsedata.com" target="_blank" class="ml-1">Leora Digitals</a>
 		</Sidebar.GroupLabel>
 	</Sidebar.Footer>
 </Sidebar.Root>

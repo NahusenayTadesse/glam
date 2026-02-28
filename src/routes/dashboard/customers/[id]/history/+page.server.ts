@@ -1,5 +1,5 @@
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { edit } from './schema.js';
+import { editCustomer } from '$lib/ZodSchema';
 import { db } from '$lib/server/db';
 import {
 	orders,
@@ -17,27 +17,18 @@ import { fail, message } from 'sveltekit-superforms';
 import { setFlash } from 'sveltekit-flash-message/server';
 import { and } from 'drizzle-orm';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
 	try {
 		const { id } = params;
 
-		const form = await superValidate(zod4(edit));
+		const form = await superValidate(zod4(editCustomer));
 
 		const customer = await db
 			.select({
-				id: customers.id,
-				customerName: customers.name,
-				phone: customers.phone,
-				email: customers.email,
-				address: customers.address,
-				status: customers.isActive,
-				daysSinceJoined: sql<number>`DATEDIFF(CURRENT_DATE, ${customers.createdAt})`,
-				createdBy: user.name,
-				createdById: user.id,
-				createdAt: sql<string>`DATE_FORMAT(${customers.createdAt}, '%Y-%m-%d')`
+				customerName: customers.name
 			})
 			.from(customers)
-			.leftJoin(user, eq(customers.createdBy, user.id))
+			.where(eq(customers.id, Number(id)))
 			.then((rows) => rows[0]);
 
 		const orderCounts = await db
@@ -67,7 +58,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			})
 			.from(orders)
 			.leftJoin(customers, eq(orders.customerId, customers.id))
-			.where(and(eq(orders.status, 'pending'), eq(orders.customerId, Number(id))));
+			.where(eq(orders.customerId, Number(id)));
 
 		const allItems = await db
 			.select({
@@ -111,40 +102,30 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions: Actions = {
-	edit: async ({ request, locals, cookies, params }) => {
-		const { id } = params;
-		const form = await superValidate(request, zod4(edit));
+	editCustomer: async ({ request, locals, cookies }) => {
+		const form = await superValidate(request, zod4(editCustomer));
 
 		if (!form.valid) {
 			// Stay on the same page and set a flash message
 			setFlash({ type: 'error', message: 'Please check your form.' }, cookies);
 			return fail(400, { form });
 		}
-		const { name, phone, email, status, address } = form.data;
+		const { firstName, lastName, gender, phone, customerId } = form.data;
 
 		try {
-			await db.transaction(async (tx) => {
-				await tx
-					.update(customers)
-					.set({
-						name,
-						email,
-						phone,
-						address,
-						isActive: status,
-						updatedBy: locals?.user?.id
-					})
-					.where(eq(customers.id, Number(id)));
+			await db
+				.update(customers)
+				.set({
+					firstName,
+					lastName,
+					gender: gender === 'male' || gender === 'female' ? gender : undefined,
+					phone,
+					updatedBy: locals?.user?.id
+				})
+				.where(eq(customers.id, customerId));
 
-				const userId = await db
-					.select({ id: customers.userId })
-					.from(customers)
-					.where(eq(customers.id, Number(id)))
-					.then((rows) => rows[0]);
-
-				await tx.update(user).set({ email }).where(eq(user.id, userId.id));
-			});
 			// Stay on the same page and set a flash message
+			setFlash({ type: 'success', message: 'Customer updated Successfully Added' }, cookies);
 			return message(form, { type: 'success', text: 'Customer updated Successfully Added' });
 		} catch (err) {
 			console.error('Error' + err);

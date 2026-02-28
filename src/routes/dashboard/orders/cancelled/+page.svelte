@@ -116,7 +116,7 @@
 </script>
 
 <svelte:head>
-	<title>Orders</title>
+	<title>Cancelled Orders</title>
 </svelte:head>
 
 <DialogComp title="+ Add New Order" variant="default">
