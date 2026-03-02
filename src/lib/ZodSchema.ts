@@ -8,7 +8,13 @@ const ACCEPTED_FILE_TYPES = [
 	'image/heif', // High Efficiency Image File (related to HEIC)
 	'application/pdf' // Document format, kept from original
 ];
-
+export const addUser = z.object({
+	name: z.string('Name is Required').min(2).max(100),
+	phone: z.string('Phone is Required').min(10).max(15),
+	email: z.email('Email is Required'),
+	password: z.string('Password is required!')
+});
+export type SignupSchema = typeof addUser;
 export const loginSchema = z.object({
 	email: z.email({ error: 'Invalid email address' }),
 	password: z.string().min(8, { error: 'Password must be at least 8 characters' })

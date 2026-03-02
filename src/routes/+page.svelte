@@ -10,29 +10,8 @@
 	setCart();
 	let { data } = $props();
 
-	// Demo products
-	// const products = [
-	// 	{
-	// 		productId: 'PRD-001',
-	// 		productName: 'Wireless Headphones',
-	// 		price: 149.99,
-	// 		category: 'Electronics'
-	// 	},
-	// 	{
-	// 		productId: 'PRD-002',
-	// 		productName: 'Mechanical Keyboard',
-	// 		price: 89.99,
-	// 		category: 'Electronics'
-	// 	},
-	// 	{ productId: 'PRD-003', productName: 'Ergonomic Mouse', price: 59.99, category: 'Electronics' },
-	// 	{ productId: 'PRD-004', productName: 'USB-C Hub', price: 45.99, category: 'Accessories' },
-	// 	{ productId: 'PRD-005', productName: 'Monitor Stand', price: 79.99, category: 'Accessories' },
-	// 	{ productId: 'PRD-006', productName: 'Desk Lamp', price: 34.99, category: 'Home Office' },
-	// 	{ productId: 'PRD-007', productName: 'Webcam HD', price: 69.99, category: 'Electronics' },
-	// 	{ productId: 'PRD-008', productName: 'Notebook Set', price: 24.99, category: 'Stationery' }
-	// ];
-
 	let product = $derived(data?.productList);
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
 </script>
 
 <div class="min-h-dvh bg-background text-foreground">
@@ -42,7 +21,7 @@
 			<h1
 				class="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-xl font-bold text-transparent"
 			>
-				Demo Store
+				Glam
 			</h1>
 			<Button onclick={toggleMode} variant="outline" size="icon">
 				<SunIcon
@@ -65,13 +44,24 @@
 			</p>
 		</div>
 
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-			{#each product as product (product.productId)}
-				<ProductCard {...product} />
-			{/each}
-		</div>
+		<Carousel.Root
+			opts={{
+				align: 'start'
+			}}
+			class="w-3/4"
+		>
+			<Carousel.Content>
+				{#each product as product (product.productId)}
+					<Carousel.Item class="w-full md:basis-1/2 lg:basis-1/3">
+						<ProductCard {...product} />
+					</Carousel.Item>
+				{/each}
+			</Carousel.Content>
+			<Carousel.Previous />
+			<Carousel.Next />
+		</Carousel.Root>
 	</main>
 
-	<!-- Floating Cart -->
 	<FloatingCart />
+	<!-- Floating Cart -->
 </div>

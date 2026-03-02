@@ -27,9 +27,11 @@ class UseCart {
 
 	constructor() {
 		// Load cart from localStorage on initialization
+
 		this.loadFromStorage();
 
 		// Save to localStorage whenever items change
+
 		$effect(() => {
 			this.saveToStorage();
 		});

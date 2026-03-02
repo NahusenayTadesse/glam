@@ -29,23 +29,26 @@ export const secureFields = {
 	})
 };
 
+export const roles = mysqlTable('roles', {
+	id: int('id').autoincrement().primaryKey(),
+	name: varchar('name', { length: 32 }).notNull().unique(),
+	description: varchar('description', { length: 255 }),
+	isActive: boolean('is_active').default(true).notNull()
+});
+
 export const user = mysqlTable('user', {
 	id: varchar('id', { length: 36 }).primaryKey(),
 	name: varchar('name', { length: 255 }).notNull(),
 	email: varchar('email', { length: 255 }).notNull().unique(),
 	emailVerified: boolean('email_verified').default(false).notNull(),
 	image: text('image'),
+	roleId: int('role_id').references(() => roles.id, {
+		onDelete: 'set null'
+	}),
 	createdAt: timestamp('created_at', { fsp: 3 }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at')
 		.default(sql`CURRENT_TIMESTAMP(3) on update CURRENT_TIMESTAMP(3)`)
 		.notNull()
-});
-
-export const roles = mysqlTable('roles', {
-	id: int('id').autoincrement().primaryKey(),
-	name: varchar('name', { length: 32 }).notNull().unique(),
-	description: varchar('description', { length: 255 }),
-	isActive: boolean('is_active').default(true).notNull()
 });
 
 export const permissions = mysqlTable('permissions', {

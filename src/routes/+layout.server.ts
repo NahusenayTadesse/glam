@@ -1,9 +1,10 @@
 import { db } from '$lib/server/db';
 import { products, productCategories } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: LayoutServerLoad = async ({ locals }) => {
+	const user = locals?.user;
 	const productList = await db
 		.select({
 			productId: products.id,
@@ -18,6 +19,7 @@ export const load: PageServerLoad = async () => {
 		.where(eq(products.isActive, true));
 
 	return {
-		productList
+		productList,
+		user
 	};
 };

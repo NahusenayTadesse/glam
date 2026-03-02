@@ -23,6 +23,13 @@
 			if (perm === 'granted') new Notification(title, { body, icon: '/logo.png' });
 		}
 	}
+	import { setCart } from '$lib/hooks/cart.svelte'; // Adjust path
+	import Cart from '$lib/components/floating-cart/cart.svelte';
+	import Header from '$lib/components/header.svelte';
+	import Footer from '$lib/components/footer.svelte';
+
+	// This initializes the class and puts it into Svelte's context
+	setCart();
 
 	let { children } = $props();
 
@@ -55,6 +62,8 @@
 	<link rel="icon" href="/logo.png" />
 </svelte:head>
 <ModeWatcher />
+<Cart />
+
 <Toaster position="bottom-right" richColors closeButton />
 
 <ProgressBar color="#3B82F6" zIndex={1000} />
@@ -68,4 +77,12 @@
 		</p>
 	</div>
 {/if}
-{@render children()}
+
+{#if !page.url.pathname.startsWith('/dashboard')}
+	<Header />
+	{@render children()}
+
+	<Footer />
+{:else}
+	{@render children()}
+{/if}

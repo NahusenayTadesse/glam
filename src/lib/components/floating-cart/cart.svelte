@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fly, fade } from 'svelte/transition';
 	import { useCart } from '$lib/hooks/cart.svelte.js';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -67,7 +66,7 @@
 						<TrashIcon class="size-4" />
 						Clear
 					</Button>
-					<Button size="sm" class="flex-1">Checkout</Button>
+					<Button size="sm" class="flex-1" href="/checkout">Checkout</Button>
 				</div>
 			</div>
 		{:else}

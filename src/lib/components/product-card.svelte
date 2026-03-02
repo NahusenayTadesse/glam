@@ -3,72 +3,107 @@
 	import { Card, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { PlusIcon, CheckIcon } from '@lucide/svelte';
+	import { PlusIcon, CheckIcon, ShoppingCartIcon } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
 		productId: number;
 		productName: string;
-		price: number;
+		price: number | string;
 		image?: string;
 		category?: string;
 	};
 
-	const { productId, productName, price, image, category }: Props = $props();
+	let { productId, productName, price, image, category }: Props = $props();
 	const cart = useCart();
 
 	let justAdded = $state(false);
 
-	/** Format price to currency */
-	const formatPrice = (price: number) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'ETB'
-		}).format(price);
-	};
+	// Reusable formatter (performance friendly)
+	const formatter = new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'ETB'
+	});
 
-	/** Add product to cart */
-	const addToCart = () => {
-		cart.addItem({ productId, productName, price });
+	// Derived values for clarity
+	const numericPrice = $derived(typeof price === 'string' ? parseFloat(price) : price);
+	const formattedPrice = $derived(formatter.format(numericPrice));
+	const quantityInCart = $derived(cart.items.find((i) => i.productId === productId)?.quantity ?? 0);
+
+	function addToCart() {
+		if (justAdded) return; // Prevent double-clicks during animation
+
+		cart.addItem({ productId, productName, price: numericPrice });
 		justAdded = true;
-		toast.success(`${productName} added to cart!`);
+
+		toast.success(`${productName} added to cart`, {
+			description: `Total in cart: ${quantityInCart + 1}`
+		});
+
 		setTimeout(() => {
 			justAdded = false;
 		}, 1500);
-	};
-
-	/** Check if item is in cart */
-	const quantityInCart = $derived(cart.items.find((i) => i.productId === productId)?.quantity ?? 0);
+	}
 </script>
 
 <Card
-	class="hover:shadow-lg-lg hover:shadow-lg-primary/10 group overflow-hidden transition-all duration-200"
+	class="group overflow-hidden border-sidebar-border transition-all duration-300 hover:ring-2 hover:ring-primary/20"
 >
 	<div class="relative aspect-square overflow-hidden bg-muted">
-		<img
-			src={'/files/' + image || `$staticServer/placeholder.svg?size=square`}
-			alt={productName}
-			class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-		/>
-		{#if category}
-			<Badge class="absolute top-2 left-2" variant="secondary">{category}</Badge>
+		{#if image}
+			<img
+				src="/files/{image}"
+				alt={productName}
+				loading="lazy"
+				class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+			/>
+		{:else}
+			<div class="flex h-full w-full items-center justify-center text-muted-foreground/40">
+				<ShoppingCartIcon class="size-12" />
+			</div>
 		{/if}
-		{#if quantityInCart > 0}
-			<Badge class="absolute top-2 right-2 bg-primary">{quantityInCart} in cart</Badge>
-		{/if}
+
+		<div class="absolute inset-x-2 top-2 flex justify-between gap-2">
+			{#if category}
+				<Badge variant="secondary" class="bg-white/80 backdrop-blur-md dark:bg-black/80">
+					{category}
+				</Badge>
+			{/if}
+
+			{#if quantityInCart > 0}
+				<Badge variant="default" class="animate-in duration-200 zoom-in-50">
+					{quantityInCart} in cart
+				</Badge>
+			{/if}
+		</div>
 	</div>
-	<CardContent class="p-4">
-		<h3 class="truncate font-semibold">{productName}</h3>
-		<p class="mt-1 text-xs text-muted-foreground">ID: {productId}</p>
-		<p class="mt-2 text-lg font-bold text-primary">{formatPrice(price)}</p>
+
+	<CardContent class="grid gap-1 p-4">
+		<div class="flex flex-col">
+			<span class="text-xs font-medium tracking-wider text-muted-foreground uppercase"
+				>ID: {productId}</span
+			>
+			<h3 class="line-clamp-1 text-lg leading-tight font-bold" title={productName}>
+				{productName}
+			</h3>
+		</div>
+		<p class="text-xl font-black text-primary">
+			{formattedPrice}
+		</p>
 	</CardContent>
+
 	<CardFooter class="p-4 pt-0">
-		<Button class="w-full gap-2" onclick={addToCart} variant={justAdded ? 'secondary' : 'default'}>
+		<Button
+			class="w-full transition-all active:scale-95"
+			onclick={addToCart}
+			variant={justAdded ? 'outline' : 'default'}
+			disabled={justAdded}
+		>
 			{#if justAdded}
-				<CheckIcon class="size-4" />
-				Added!
+				<CheckIcon class="mr-2 size-4 text-green-500" />
+				Added to Cart
 			{:else}
-				<PlusIcon class="size-4" />
+				<PlusIcon class="mr-2 size-4" />
 				Add to Cart
 			{/if}
 		</Button>

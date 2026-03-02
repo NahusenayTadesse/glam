@@ -1,5 +1,4 @@
 <script lang="ts">
-	import AppointmentCard from '$lib/components/dashboard/appointment-card.svelte';
 	import ReorderList from '$lib/components/dashboard/reorder-list.svelte';
 	import { PackageIcon } from '@lucide/svelte';
 

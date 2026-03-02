@@ -1,13 +1,18 @@
-import { superValidate, message } from 'sveltekit-superforms';
+import { setError, superValidate, message, fail } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { eq, and, sql } from 'drizzle-orm';
+import { redirect } from '@sveltejs/kit';
 
 import { add, edit } from './schema';
 import { db } from '$lib/server/db';
 import { orders, orderItems, products, customers } from '$lib/server/db/schema';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.user) {
+		redirect(302, '/login');
+	}
+
 	const form = await superValidate(zod4(add));
 	const editForm = await superValidate(zod4(edit));
 
@@ -34,6 +39,12 @@ TRIM(
 		})
 		.from(customers);
 
+	const customerId = await db
+		.select({ value: customers.id })
+		.from(customers)
+		.where(eq(customers.userId, locals?.user?.id))
+		.then((rows) => rows[0]);
+
 	const allData = await db
 		.select({
 			id: orders.id,
@@ -43,7 +54,7 @@ TRIM(
 		})
 		.from(orders)
 		.leftJoin(customers, eq(orders.customerId, customers.id))
-		.where(eq(orders.status, 'pending'));
+		.where(eq(customers.id, customerId?.value));
 
 	const allItems = await db
 		.select({
